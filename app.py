@@ -272,14 +272,14 @@ st.markdown("""
     }
     
     .icon-5 {
-        top: 400px;
-        left: 120px;
+        top: 80px;
+        left: 45%;
         width: 85px;
     }
     
     .icon-6 {
-        top: 320px;
-        right: 250px;
+        top: 150px;
+        left: 55%;
         width: 95px;
     }
 </style>
