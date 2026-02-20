@@ -17,7 +17,7 @@ from ticket_generator import get_qr_bytes, get_ticket_bytes
 st.set_page_config(
     page_title="TicketBot - Event Ticketing Chatbot",
     page_icon="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect fill='white'/><path d='M128 24A104 104 0 1 0 232 128 104.11 104.11 0 0 0 128 24Zm0 192a88 88 0 1 1 88-88 88.1 88.1 0 0 1-88 88Z'/></svg>",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
@@ -40,24 +40,32 @@ st.markdown("""
     
     .main-header {
         text-align: left;
-        padding: 30px 0;
-        margin-bottom: 20px;
+        padding: 40px 60px;
+        margin-bottom: 10px;
+        position: relative;
     }
     
     .main-header h1 {
         font-family: 'Space Grotesk', sans-serif !important;
-        font-size: 3.5rem;
+        font-size: 4rem;
         font-weight: 700;
         color: #000000;
         margin: 0;
-        line-height: 1.1;
+        line-height: 1.0;
     }
     
     .main-header p {
         font-family: 'Space Mono', monospace !important;
         font-size: 1rem;
         color: #333333;
-        margin-top: 10px;
+        margin-top: 15px;
+        max-width: 500px;
+    }
+    
+    .block-container {
+        padding-left: 60px !important;
+        padding-right: 60px !important;
+        max-width: 1400px !important;
     }
     
     .window-card {
@@ -192,11 +200,13 @@ st.markdown("""
         display: inline-block;
         background: #ffffff;
         border: 2px solid #000000;
-        padding: 8px 16px;
-        margin: 5px;
+        padding: 10px 20px;
+        margin: 5px 10px 5px 0;
         font-family: 'Space Mono', monospace !important;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         border-radius: 4px;
+        color: #000000;
+        box-shadow: 3px 3px 0px #000000;
     }
     
     .sidebar-content {
@@ -250,7 +260,7 @@ st.markdown("""
 
 # Feature tags
 st.markdown("""
-<div style="margin-bottom: 30px;">
+<div style="margin-bottom: 40px; padding-left: 60px;">
     <span class="feature-tag">Mood-Based Picks</span>
     <span class="feature-tag">QR Tickets</span>
     <span class="feature-tag">Instant Booking</span>
