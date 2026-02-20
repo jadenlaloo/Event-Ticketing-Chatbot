@@ -248,38 +248,38 @@ st.markdown("""
     }
     
     .icon-1 {
-        top: 120px;
-        right: 80px;
+        top: 100px;
+        right: 100px;
         width: 120px;
     }
     
     .icon-2 {
-        top: 350px;
-        right: 200px;
+        top: 180px;
+        left: 50px;
         width: 100px;
     }
     
     .icon-3 {
-        bottom: 150px;
-        right: 100px;
+        bottom: 120px;
+        right: 150px;
         width: 90px;
     }
     
     .icon-4 {
-        top: 200px;
-        left: 70%;
+        bottom: 100px;
+        left: 80px;
         width: 110px;
     }
     
     .icon-5 {
-        bottom: 250px;
-        left: 65%;
+        top: 400px;
+        left: 120px;
         width: 85px;
     }
     
     .icon-6 {
-        top: 500px;
-        right: 350px;
+        top: 320px;
+        right: 250px;
         width: 95px;
     }
 </style>
