@@ -282,6 +282,42 @@ st.markdown("""
         left: 55%;
         width: 95px;
     }
+    
+    .icon-7 {
+        top: 450px;
+        left: 60px;
+        width: 80px;
+    }
+    
+    .icon-8 {
+        top: 550px;
+        right: 80px;
+        width: 90px;
+    }
+    
+    .icon-9 {
+        bottom: 300px;
+        left: 40%;
+        width: 75px;
+    }
+    
+    .icon-10 {
+        top: 280px;
+        right: 180px;
+        width: 85px;
+    }
+    
+    .icon-11 {
+        bottom: 200px;
+        left: 200px;
+        width: 70px;
+    }
+    
+    .icon-12 {
+        top: 380px;
+        left: 48%;
+        width: 80px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -303,10 +339,11 @@ icon_files = [
     "download.jpeg"
 ]
 
-# Create floating icons HTML
+# Create floating icons HTML - 12 icons spread around, using images in varied order
+icon_order = [0, 3, 1, 4, 2, 5, 2, 0, 4, 1, 5, 3]  # Varied order to avoid same icons near each other
 floating_icons_html = ""
-for i, icon_file in enumerate(icon_files):
-    icon_path = os.path.join(icons_folder, icon_file)
+for i, icon_idx in enumerate(icon_order):
+    icon_path = os.path.join(icons_folder, icon_files[icon_idx])
     if os.path.exists(icon_path):
         img_base64 = get_image_base64(icon_path)
         floating_icons_html += f'<img src="data:image/jpeg;base64,{img_base64}" class="floating-icon icon-{i+1}" />'
