@@ -1,5 +1,6 @@
-streamlit
+﻿streamlit
 qrcode
 Pillow
 python-dateutil
-groqrequests
+groq
+requests
