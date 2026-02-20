@@ -222,6 +222,77 @@ st.markdown("""
         background: transparent !important;
     }
     
+    /* Chat input styling - remove dark background */
+    [data-testid="stChatInput"] {
+        background: transparent !important;
+        padding: 10px 60px !important;
+    }
+    
+    [data-testid="stChatInput"] > div {
+        background: #ffffff !important;
+        border: 2px solid #000000 !important;
+        border-radius: 6px !important;
+        box-shadow: 3px 3px 0px #000000 !important;
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+    }
+    
+    [data-testid="stChatInput"] textarea {
+        background: #ffffff !important;
+        font-family: 'Space Mono', monospace !important;
+        font-size: 0.9rem !important;
+        color: #000000 !important;
+        padding: 12px 15px !important;
+        min-height: 20px !important;
+        max-height: 100px !important;
+    }
+    
+    [data-testid="stChatInput"] textarea::placeholder {
+        color: #666666 !important;
+        font-family: 'Space Mono', monospace !important;
+    }
+    
+    [data-testid="stChatInput"] button {
+        background: #000000 !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 4px !important;
+        margin: 5px !important;
+    }
+    
+    [data-testid="stChatInput"] button:hover {
+        background: #333333 !important;
+    }
+    
+    /* Remove any red/colored outlines */
+    [data-testid="stChatInput"] > div:focus-within {
+        border-color: #000000 !important;
+        outline: none !important;
+        box-shadow: 4px 4px 0px #000000 !important;
+    }
+    
+    /* Fix the bottom bar dark background */
+    .stBottom {
+        background: transparent !important;
+    }
+    
+    .stBottom > div {
+        background: transparent !important;
+    }
+    
+    [data-testid="stBottomBlockContainer"] {
+        background: transparent !important;
+    }
+    
+    /* Target the chat input wrapper */
+    .stChatInput {
+        background: transparent !important;
+    }
+    
+    .stChatInput > div {
+        background: transparent !important;
+    }
+
     [data-testid="stChatMessageContent"] {
         background: #ffffff !important;
         border: 2px solid #000000 !important;
@@ -239,84 +310,127 @@ st.markdown("""
         margin-top: 40px;
     }
     
+    /* Floating animation keyframes */
+    @keyframes float1 {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-15px) rotate(2deg); }
+    }
+    
+    @keyframes float2 {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(-2deg); }
+    }
+    
+    @keyframes float3 {
+        0%, 100% { transform: translateY(0px) scale(1); }
+        50% { transform: translateY(-12px) scale(1.02); }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 0.85; }
+    }
+    
+    @keyframes drift {
+        0%, 100% { transform: translate(0px, 0px); }
+        25% { transform: translate(5px, -10px); }
+        50% { transform: translate(0px, -15px); }
+        75% { transform: translate(-5px, -8px); }
+    }
+    
     /* Floating retro icons */
     .floating-icon {
         position: fixed;
         z-index: 0;
-        opacity: 0.7;
+        opacity: 0.65;
         pointer-events: none;
+        transition: all 0.3s ease;
+        filter: grayscale(20%);
+        animation: pulse 4s ease-in-out infinite;
     }
     
     .icon-1 {
         top: 100px;
         right: 100px;
-        width: 120px;
+        width: 130px;
+        animation: float1 6s ease-in-out infinite;
     }
     
     .icon-2 {
         top: 180px;
         left: 50px;
-        width: 100px;
+        width: 95px;
+        animation: float2 7s ease-in-out infinite 0.5s;
     }
     
     .icon-3 {
         bottom: 120px;
         right: 150px;
-        width: 90px;
+        width: 85px;
+        animation: drift 8s ease-in-out infinite 1s;
     }
     
     .icon-4 {
         bottom: 100px;
         left: 80px;
-        width: 110px;
+        width: 115px;
+        animation: float3 5s ease-in-out infinite 0.3s;
     }
     
     .icon-5 {
         top: 80px;
         left: 45%;
-        width: 85px;
+        width: 75px;
+        animation: float1 9s ease-in-out infinite 2s;
     }
     
     .icon-6 {
         top: 150px;
         left: 55%;
-        width: 95px;
+        width: 100px;
+        animation: float2 6.5s ease-in-out infinite 1.5s;
     }
     
     .icon-7 {
         top: 450px;
         left: 60px;
-        width: 80px;
+        width: 70px;
+        animation: drift 7s ease-in-out infinite 0.8s;
     }
     
     .icon-8 {
         top: 550px;
         right: 80px;
-        width: 90px;
+        width: 95px;
+        animation: float3 8s ease-in-out infinite 2.5s;
     }
     
     .icon-9 {
         bottom: 300px;
         left: 40%;
-        width: 75px;
+        width: 65px;
+        animation: float1 7.5s ease-in-out infinite 1.2s;
     }
     
     .icon-10 {
         top: 280px;
         right: 180px;
-        width: 85px;
+        width: 90px;
+        animation: float2 5.5s ease-in-out infinite 0.7s;
     }
     
     .icon-11 {
         bottom: 200px;
         left: 200px;
-        width: 70px;
+        width: 60px;
+        animation: drift 6s ease-in-out infinite 1.8s;
     }
     
     .icon-12 {
         top: 380px;
         left: 48%;
-        width: 80px;
+        width: 85px;
+        animation: float3 7s ease-in-out infinite 0.4s;
     }
 </style>
 """, unsafe_allow_html=True)

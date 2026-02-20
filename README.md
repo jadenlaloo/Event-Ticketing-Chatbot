@@ -27,6 +27,7 @@ A clean, distraction-free interface inspired by classic computing aesthetics. Bl
 ### Prerequisites
 - Python 3.8 or higher
 - pip (Python package manager)
+- Groq API key (free at https://console.groq.com)
 
 ### Installation
 
@@ -41,12 +42,45 @@ cd Event-Ticketing-Chatbot
 pip install -r requirements.txt
 ```
 
-3. Run the application
+3. Set up your Groq API key
+
+**Option A: Environment Variable (recommended for local development)**
+```bash
+# Windows PowerShell
+$env:GROQ_API_KEY = "your_groq_api_key_here"
+
+# Linux/Mac
+export GROQ_API_KEY="your_groq_api_key_here"
+```
+
+**Option B: Streamlit Secrets (recommended for deployment)**
+- Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml`
+- Add your API key to `.streamlit/secrets.toml`
+
+4. Run the application
 ```bash
 streamlit run app.py
 ```
 
-4. Open in browser at `http://localhost:8501`
+5. Open in browser at `http://localhost:8501`
+
+---
+
+## Deployment to Streamlit Cloud
+
+1. Push your code to GitHub
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Sign in with GitHub
+4. Click "New app"
+5. Select your repository: `jadenlaloo/Event-Ticketing-Chatbot`
+6. Main file path: `app.py`
+7. Click "Advanced settings" and add your secrets:
+   ```
+   GROQ_API_KEY = "your_groq_api_key_here"
+   ```
+8. Click "Deploy"
+
+Your app will be live at `https://your-app-name.streamlit.app`
 
 ---
 
