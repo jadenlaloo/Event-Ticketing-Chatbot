@@ -293,7 +293,7 @@ def get_image_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-icons_folder = "icons"
+icons_folder = "icons new"
 icon_files = [
     "books.jpeg",
     "download (1).jpeg", 
