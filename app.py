@@ -10,26 +10,8 @@ Features:
 """
 
 import streamlit as st
-import base64
-import os
 from chatbot_engine import ChatbotEngine
 from ticket_generator import get_qr_bytes, get_ticket_bytes
-
-# Load icons as base64
-def get_image_base64(image_path):
-    with open(image_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
-
-# Get icon paths
-icons_folder = os.path.join(os.path.dirname(__file__), "icons")
-icon_files = {
-    "books": os.path.join(icons_folder, "books.jpeg"),
-    "icon1": os.path.join(icons_folder, "download (1).jpeg"),
-    "icon2": os.path.join(icons_folder, "download (2).jpeg"),
-    "cassette": os.path.join(icons_folder, "Download premium png of PNG Retro cassette tape illustration_ by Hein about music png, cassett tape halftone, vintage paper background, vintage cassette tape illustration, and background 17874012.jpeg"),
-    "globe": os.path.join(icons_folder, "Download premium png of PNG Vintage monochrome globe illustration by Hein about globe, retro world map, world, background, and png 17873929.jpeg"),
-    "icon3": os.path.join(icons_folder, "download.jpeg")
-}
 
 # Page configuration
 st.set_page_config(
@@ -257,64 +239,79 @@ st.markdown("""
         margin-top: 40px;
     }
     
+    /* Floating retro icons */
     .floating-icon {
         position: fixed;
         z-index: 0;
-        opacity: 0.9;
+        opacity: 0.7;
         pointer-events: none;
     }
     
     .icon-1 {
-        top: 80px;
-        right: 100px;
+        top: 120px;
+        right: 80px;
         width: 120px;
     }
     
     .icon-2 {
         top: 350px;
-        right: 60px;
+        right: 200px;
         width: 100px;
     }
     
     .icon-3 {
         bottom: 150px;
-        right: 150px;
-        width: 110px;
+        right: 100px;
+        width: 90px;
     }
     
     .icon-4 {
         top: 200px;
-        left: 80px;
-        width: 100px;
+        left: 70%;
+        width: 110px;
     }
     
     .icon-5 {
-        bottom: 100px;
-        left: 60px;
-        width: 120px;
+        bottom: 250px;
+        left: 65%;
+        width: 85px;
     }
     
     .icon-6 {
-        bottom: 300px;
-        left: 150px;
-        width: 90px;
+        top: 500px;
+        right: 350px;
+        width: 95px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Add floating icons
-try:
-    icons_html = f'''
-    <img src="data:image/jpeg;base64,{get_image_base64(icon_files["globe"])}" class="floating-icon icon-1" alt="">
-    <img src="data:image/jpeg;base64,{get_image_base64(icon_files["books"])}" class="floating-icon icon-2" alt="">
-    <img src="data:image/jpeg;base64,{get_image_base64(icon_files["cassette"])}" class="floating-icon icon-3" alt="">
-    <img src="data:image/jpeg;base64,{get_image_base64(icon_files["icon1"])}" class="floating-icon icon-4" alt="">
-    <img src="data:image/jpeg;base64,{get_image_base64(icon_files["icon2"])}" class="floating-icon icon-5" alt="">
-    <img src="data:image/jpeg;base64,{get_image_base64(icon_files["icon3"])}" class="floating-icon icon-6" alt="">
-    '''
-    st.markdown(icons_html, unsafe_allow_html=True)
-except:
-    pass
+# Add floating retro icons
+import base64
+import os
+
+def get_image_base64(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+icons_folder = "icons"
+icon_files = [
+    "books.jpeg",
+    "download (1).jpeg", 
+    "download (2).jpeg",
+    "Download premium png of PNG Retro cassette tape illustration_ by Hein about music png, cassett tape halftone, vintage paper background, vintage cassette tape illustration, and background 17874012.jpeg",
+    "Download premium png of PNG Vintage monochrome globe illustration by Hein about globe, retro world map, world, background, and png 17873929.jpeg",
+    "download.jpeg"
+]
+
+# Create floating icons HTML
+floating_icons_html = ""
+for i, icon_file in enumerate(icon_files):
+    icon_path = os.path.join(icons_folder, icon_file)
+    if os.path.exists(icon_path):
+        img_base64 = get_image_base64(icon_path)
+        floating_icons_html += f'<img src="data:image/jpeg;base64,{img_base64}" class="floating-icon icon-{i+1}" />'
+
+st.markdown(floating_icons_html, unsafe_allow_html=True)
 
 # Initialize session state
 if 'chatbot' not in st.session_state:
