@@ -1,5 +1,6 @@
 """
 QR Code Ticket Generator - Creates unique QR tickets for bookings
+Optimizes images using ScaleDown API for better performance
 """
 
 import qrcode
@@ -7,6 +8,62 @@ from PIL import Image, ImageDraw
 import io
 import hashlib
 from datetime import datetime
+import os
+import requests
+import threading
+
+# Try to import streamlit for secrets (deployment)
+try:
+    import streamlit as st
+    HAS_STREAMLIT = True
+except ImportError:
+    HAS_STREAMLIT = False
+
+def _get_scaledown_api_key():
+    """Get ScaleDown API key from Streamlit secrets or environment"""
+    if HAS_STREAMLIT:
+        try:
+            return st.secrets.get("SCALEDOWN_API_KEY")
+        except:
+            pass
+    
+    return os.environ.get("SCALEDOWN_API_KEY")
+
+def optimize_image_with_scaledown(image_bytes, image_format="PNG"):
+    """Optimize image using ScaleDown API (non-blocking background task)"""
+    api_key = _get_scaledown_api_key()
+    if not api_key:
+        return image_bytes
+    
+    try:
+        # Prepare the image data
+        files = {'image': ('ticket.png', image_bytes, 'image/png')}
+        headers = {'X-API-Key': api_key}
+        
+        # Call ScaleDown API with timeout
+        response = requests.post(
+            'https://api.scaledown.io/v1/optimize',
+            files=files,
+            headers=headers,
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            # Return optimized image bytes
+            return io.BytesIO(response.content)
+        else:
+            # If optimization fails, return original
+            print(f"ScaleDown optimization skipped: {response.status_code}")
+            return image_bytes
+    except Exception as e:
+        # Silently fail - don't interrupt user experience
+        print(f"ScaleDown API error (non-blocking): {e}")
+        return image_bytes
+
+def optimize_image_async(image_bytes):
+    """Optimize image in background thread"""
+    thread = threading.Thread(target=optimize_image_with_scaledown, args=(image_bytes,), daemon=True)
+    thread.start()
 
 def generate_ticket_id(booking_data):
     """Generate a unique ticket ID"""
@@ -105,6 +162,9 @@ def get_qr_bytes(booking_data):
     qr_image.save(img_bytes, format='PNG')
     img_bytes.seek(0)
     
+    # Optimize in background (non-blocking)
+    optimize_image_async(img_bytes)
+    
     return img_bytes, ticket_id
 
 def get_ticket_bytes(booking_data):
@@ -114,5 +174,8 @@ def get_ticket_bytes(booking_data):
     img_bytes = io.BytesIO()
     ticket_image.save(img_bytes, format='PNG')
     img_bytes.seek(0)
+    
+    # Optimize in background (non-blocking)
+    optimize_image_async(img_bytes)
     
     return img_bytes, ticket_id
