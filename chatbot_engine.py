@@ -91,7 +91,7 @@ When recommending events, ONLY recommend events from the provided list. Include 
 Keep responses SHORT - no more than 4-5 lines unless listing events."""
     
     def _call_groq(self, user_message):
-        """Call Groq API for a response"""
+        """Call Groq API for a response with timeout"""
         if not self.groq_client:
             return None
             
@@ -113,11 +113,13 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
                 model="llama-3.1-8b-instant",
                 messages=messages,
                 temperature=0.7,
-                max_tokens=500
+                max_tokens=400,
+                timeout=10  # 10 second timeout
             )
             return response.choices[0].message.content
         except Exception as e:
             print(f"Groq API error: {e}")
+            return None
             return None
     
     def reset(self):
@@ -250,30 +252,24 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
                 matching_events = self.get_events_by_mood(detected_mood)
                 self.current_events = matching_events
                 
-                if ai_response:
-                    # Check if AI response includes event list, if not add it
-                    if "1." not in ai_response:
-                        response = ai_response + "\n\n"
-                        response += self._format_events_list(matching_events)
-                        response += "Which event interests you? (Enter the number)"
-                    else:
-                        response = ai_response
-                else:
-                    response = f"I sense you're feeling {detected_mood}. "
-                    response += "Let me find something perfect for you.\n\n"
-                    response += "Based on your mood, here are my recommendations:\n\n"
-                    response += self._format_events_list(matching_events)
-                    response += "Which event interests you? (Enter the number)"
+                # Always use structured response to ensure events are listed properly
+                response = f"I sense you're feeling {detected_mood}. "
+                
+                # Add AI empathy if available
+                if ai_response and len(ai_response) < 200:
+                    response = ai_response.split('\n')[0] + " "
+                
+                response += "Here are some events that might be perfect:\n\n"
+                response += self._format_events_list(matching_events)
+                response += "Which event interests you? (Enter the number)"
                 
                 self.state = "event_selection"
             else:
-                if ai_response:
-                    response = ai_response
-                else:
-                    response = "I couldn't quite pin down your mood from that.\n"
-                    response += "No worries! Here are all our popular events:\n\n"
-                
+                # Couldn't detect mood - show all events
                 self.current_events = EVENTS[:8]
+                
+                response = "I'd love to help you find the perfect event!\n\n"
+                response += "Here are our popular events:\n\n"
                 response += self._format_events_list(self.current_events)
                 response += "Which one catches your interest? (Enter the number)"
                 self.state = "event_selection"

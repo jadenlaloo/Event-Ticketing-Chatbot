@@ -432,6 +432,49 @@ st.markdown("""
         width: 85px;
         animation: float3 7s ease-in-out infinite 0.4s;
     }
+    
+    /* Typing indicator */
+    .typing-indicator {
+        background: #ffffff;
+        color: #000000;
+        padding: 15px 20px;
+        border-radius: 8px 8px 8px 0;
+        margin: 10px 0;
+        max-width: 85%;
+        font-family: 'Space Mono', monospace !important;
+        border: 2px solid #000000;
+        box-shadow: 3px 3px 0px #000000;
+        display: inline-block;
+    }
+    
+    .typing-indicator span {
+        height: 10px;
+        width: 10px;
+        background-color: #000000;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
+        animation: typing 1.4s infinite;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.7;
+        }
+        30% {
+            transform: translateY(-10px);
+            opacity: 1;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -547,6 +590,10 @@ with chat_container:
             st.markdown(f'<div class="chat-message-user">{message["content"]}</div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="chat-message-bot">{message["content"].replace(chr(10), "<br>")}</div>', unsafe_allow_html=True)
+    
+    # Show typing indicator if processing
+    if st.session_state.get('is_thinking', False):
+        st.markdown('<div class="typing-indicator"><span></span><span></span><span></span></div>', unsafe_allow_html=True)
 
 # Show QR ticket if booking is complete
 if st.session_state.chatbot.state == "booking_complete":
@@ -590,8 +637,14 @@ user_input = st.chat_input("Type your message here...", key="chat_input")
 
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
-    response = st.session_state.chatbot.process_message(user_input)
+    st.session_state.is_thinking = True
+    st.rerun()
+
+# Process message after showing typing indicator
+if st.session_state.get('is_thinking', False):
+    response = st.session_state.chatbot.process_message(st.session_state.messages[-1]["content"])
     st.session_state.messages.append({"role": "bot", "content": response})
+    st.session_state.is_thinking = False
     st.rerun()
 
 # Footer
