@@ -118,8 +118,12 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"Groq API error: {e}")
-            return None
+            error_str = str(e).lower()
+            # Handle rate limit gracefully
+            if "rate_limit" in error_str or "429" in error_str:
+                print(f"API rate limit hit. Please wait a moment and try again.")
+            else:
+                print(f"Groq API error: {e}")
             return None
     
     def reset(self):
@@ -137,11 +141,11 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
     
     def get_greeting(self):
         """Return initial greeting message"""
-        if self.groq_client:
-            response = self._call_groq("Generate a greeting for a new user")
-            if response:
-                return response
+        response = self._call_groq("Generate a warm, concise greeting introducing yourself as TicketBot. Ask for the user's name. Keep it to 2-3 sentences max. No emojis.")
+        if response:
+            return response
         
+        # Emergency fallback if API fails
         return "Hello. I'm TicketBot.\n\nI help you discover events based on how you're feeling. What's your name?"
     
     def detect_mood(self, text):
@@ -223,24 +227,21 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
         return result
     
     def process_message(self, user_input):
-        """Process user message and return bot response"""
+        """Process user message and return bot response - All responses from Groq API"""
         user_input = user_input.strip()
         self.conversation_history.append({"role": "user", "content": user_input})
         
         response = ""
         
-        # Try Groq first for natural responses
-        ai_response = self._call_groq(user_input) if self.groq_client else None
-        
         if self.state == "greeting":
             self.user_data["name"] = user_input.split()[0].title() if user_input else "Friend"
             
-            if ai_response:
-                response = ai_response
-            else:
-                response = f"Nice to meet you, {self.user_data['name']}.\n\n"
-                response += "I have a unique feature - I recommend events based on your current mood.\n\n"
-                response += "So, how are you feeling today?"
+            # Always use AI for response
+            ai_prompt = f"The user said their name is '{user_input}'. Greet them warmly using their name ({self.user_data['name']}), then explain your unique mood-based event recommendation feature, and ask how they're feeling today. Keep it conversational and under 4 sentences. No emojis."
+            response = self._call_groq(ai_prompt)
+            
+            if not response:  # Emergency fallback
+                response = f"Nice to meet you, {self.user_data['name']}. I recommend events based on your mood. How are you feeling today?"
             
             self.state = "mood_check"
             
@@ -252,24 +253,31 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
                 matching_events = self.get_events_by_mood(detected_mood)
                 self.current_events = matching_events
                 
-                # Always use structured response to ensure events are listed properly
-                response = f"I sense you're feeling {detected_mood}. "
+                # Generate AI empathy response about the mood
+                ai_prompt = f"The user is feeling {detected_mood}. Respond with empathy in 1-2 sentences, then say you'll show them matching events. Keep it natural and warm. No emojis."
+                ai_empathy = self._call_groq(ai_prompt)
                 
-                # Add AI empathy if available
-                if ai_response and len(ai_response) < 200:
-                    response = ai_response.split('\n')[0] + " "
+                if ai_empathy:
+                    response = ai_empathy + "\n\n"
+                else:
+                    response = f"I sense you're feeling {detected_mood}. Here are some events that might be perfect:\n\n"
                 
-                response += "Here are some events that might be perfect:\n\n"
                 response += self._format_events_list(matching_events)
                 response += "Which event interests you? (Enter the number)"
                 
                 self.state = "event_selection"
             else:
-                # Couldn't detect mood - show all events
+                # Couldn't detect mood - ask AI to respond naturally
+                ai_prompt = f"The user said '{user_input}' but I couldn't detect a specific mood. Respond warmly saying you'll show them popular events. Keep it to 1-2 sentences. No emojis."
+                ai_response = self._call_groq(ai_prompt)
+                
                 self.current_events = EVENTS[:8]
                 
-                response = "I'd love to help you find the perfect event!\n\n"
-                response += "Here are our popular events:\n\n"
+                if ai_response:
+                    response = ai_response + "\n\n"
+                else:
+                    response = "I'd love to help you find the perfect event!\n\n"
+                
                 response += self._format_events_list(self.current_events)
                 response += "Which one catches your interest? (Enter the number)"
                 self.state = "event_selection"
@@ -281,23 +289,30 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
                 selected = self.current_events[num - 1]
                 self.user_data["selected_event"] = selected
                 
-                if ai_response:
-                    response = ai_response
+                # AI confirms selection and shows details
+                ai_prompt = f"The user selected event #{num}: {selected['name']}. Acknowledge their choice positively in 1 sentence, then present the event details below it. No emojis."
+                ai_intro = self._call_groq(ai_prompt)
+                
+                if ai_intro:
+                    response = ai_intro + "\n\n"
                 else:
-                    response = f"Great choice!\n\n"
-                    response += f"--- {selected['name']} ---\n\n"
-                    response += f"{selected['description']}\n\n"
-                    response += f"Date: {selected['date']}\n"
-                    response += f"Time: {selected['time']}\n"
-                    response += f"Venue: {selected['venue']}\n"
-                    response += f"Price: ${selected['price']:.2f} per ticket\n\n"
-                    response += "How many tickets would you like? (1-10)"
+                    response = "Great choice!\n\n"
+                
+                response += f"--- {selected['name']} ---\n\n"
+                response += f"{selected['description']}\n\n"
+                response += f"Date: {selected['date']}\n"
+                response += f"Time: {selected['time']}\n"
+                response += f"Venue: {selected['venue']}\n"
+                response += f"Price: ${selected['price']:.2f} per ticket\n\n"
+                response += "How many tickets would you like? (1-10)"
                 
                 self.state = "ticket_count"
             else:
-                if ai_response:
-                    response = ai_response
-                else:
+                # Invalid number - AI responds
+                ai_prompt = f"The user entered '{user_input}' which isn't a valid event number (valid range: 1-{len(self.current_events)}). Ask them politely to enter a valid number. Keep it brief. No emojis."
+                response = self._call_groq(ai_prompt)
+                
+                if not response:
                     response = f"Please enter a valid number between 1 and {len(self.current_events)}."
                 
         elif self.state == "ticket_count":
@@ -309,19 +324,28 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
                     self.user_data["num_tickets"] = num
                     total = num * event["price"]
                     
-                    if ai_response:
-                        response = ai_response
-                    else:
-                        response = f"Got it. {num} ticket(s) for {event['name']}.\n\n"
-                        response += f"Total: ${total:.2f}\n\n"
-                        response += "Please enter your email address to receive your tickets:"
+                    # AI confirms ticket count
+                    ai_prompt = f"The user wants {num} ticket(s) for {event['name']} at ${event['price']:.2f} each (total ${total:.2f}). Confirm this briefly and ask for their email address. 2 sentences max. No emojis."
+                    response = self._call_groq(ai_prompt)
+                    
+                    if not response:
+                        response = f"Got it. {num} ticket(s) for {event['name']}.\nTotal: ${total:.2f}\n\nPlease enter your email address:"
                     
                     self.state = "email_collection"
                 else:
-                    response = f"Unfortunately, only {event['available_seats']} seats are left.\n"
-                    response += "Please enter a smaller number:"
+                    # Not enough seats - AI responds
+                    ai_prompt = f"Unfortunately only {event['available_seats']} seats are left, but the user requested {num}. Explain this politely and ask for a smaller number. Keep it brief. No emojis."
+                    response = self._call_groq(ai_prompt)
+                    
+                    if not response:
+                        response = f"Unfortunately, only {event['available_seats']} seats are left. Please enter a smaller number:"
             else:
-                response = "Please enter a number between 1 and 10."
+                # Invalid number - AI responds
+                ai_prompt = f"The user entered '{user_input}' which isn't a valid ticket count (must be 1-10). Ask them politely to enter a valid number. Keep it brief. No emojis."
+                response = self._call_groq(ai_prompt)
+                
+                if not response:
+                    response = "Please enter a number between 1 and 10."
                 
         elif self.state == "email_collection":
             email = self.extract_email(user_input)
@@ -332,6 +356,7 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
                 num_tickets = self.user_data["num_tickets"]
                 total = num_tickets * event["price"]
                 
+                # Structured confirmation (keep this as is for clarity)
                 response = "--- BOOKING CONFIRMED ---\n\n"
                 response += f"Event: {event['name']}\n"
                 response += f"Name: {self.user_data['name']}\n"
@@ -344,29 +369,35 @@ Keep responses SHORT - no more than 4-5 lines unless listing events."""
                 response += "Would you like to book another event? (yes/no)"
                 self.state = "booking_complete"
             else:
-                if ai_response:
-                    response = ai_response
-                else:
-                    response = "That doesn't look like a valid email.\nPlease enter a valid email address (e.g., name@example.com):"
+                # Invalid email - AI responds
+                ai_prompt = f"The user entered '{user_input}' which doesn't look like a valid email address. Ask them politely to provide a valid email (like name@example.com). Keep it brief. No emojis."
+                response = self._call_groq(ai_prompt)
+                
+                if not response:
+                    response = "That doesn't look like a valid email. Please enter a valid email address (e.g., name@example.com):"
                 
         elif self.state == "booking_complete":
             positive_words = ["yes", "yeah", "sure", "yep", "another", "more", "definitely", "ok", "okay"]
             if any(word in user_input.lower() for word in positive_words):
-                if ai_response:
-                    response = ai_response
-                else:
-                    response = f"Awesome, {self.user_data['name']}!\n\n"
-                    response += "How are you feeling now? Maybe your mood changed!"
+                # User wants another event - AI responds
+                ai_prompt = f"The user ({self.user_data['name']}) wants to book another event. Respond enthusiastically and ask about their current mood. Keep it to 2 sentences. No emojis."
+                response = self._call_groq(ai_prompt)
+                
+                if not response:
+                    response = f"Awesome, {self.user_data['name']}! How are you feeling now?"
                 
                 self.state = "mood_check"
                 self.user_data["selected_event"] = None
                 self.user_data["num_tickets"] = 1
                 self.user_data["email"] = None
             else:
-                if ai_response:
-                    response = ai_response
-                else:
-                    response = f"Thank you for using TicketBot, {self.user_data['name']}.\n\nEnjoy your event!"
+                # User is done - AI says goodbye
+                ai_prompt = f"The user ({self.user_data['name']}) is done booking. Say a warm, friendly goodbye and wish them well at their event. Keep it to 2 sentences max. No emojis."
+                response = self._call_groq(ai_prompt)
+                
+                if not response:
+                    response = f"Thank you for using TicketBot, {self.user_data['name']}. Enjoy your event!"
+                
                 self.state = "ended"
                 
         elif self.state == "ended":
